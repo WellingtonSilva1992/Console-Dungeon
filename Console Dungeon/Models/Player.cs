@@ -9,8 +9,7 @@ namespace Console_Dungeon
         public bool hasKey = false;
         public bool hasSword = false;
         public bool enemyIsProximity = false;
-        public int Life = 10;
-        public int Position;
-        public int enemyPosition;
+        public int life = 10;
+        
     }
 }
