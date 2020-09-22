@@ -24,7 +24,6 @@ namespace Console_Dungeon
 
         public static void Main(string[] args)
         {            
-
             ShowGameIntro();
 
             if (HasSaveGame())
@@ -183,6 +182,7 @@ namespace Console_Dungeon
 
         private static void SaveGame()
         {
+            //File.WriteAllText(@"C:\Temp\mySaveFile.sav", );
             throw new NotImplementedException();
         }
 
@@ -234,7 +234,7 @@ namespace Console_Dungeon
 
         private static bool HasSaveGame()
         {
-            if (File.Exists(@"C:\consoledungeon.txt"))
+            if (File.Exists(@"C:\Temp\mySaveFile.sav"))
             {
                 return true;
             }
