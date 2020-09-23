@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Channels;
 
 namespace Console_Dungeon
@@ -10,6 +14,7 @@ namespace Console_Dungeon
         static Texts texts = new Texts();
         static Dungeon dungeon = new Dungeon();
         static Player player = new Player();
+        static string saveGameLocal = @"c:\Temp\mySaveFile.json";
 
         enum Controls
         {
@@ -32,7 +37,7 @@ namespace Console_Dungeon
 
                 if (answer)
                 {
-                    RecoverInfo();
+                    RestoreSalveGame();
                 }
             }
 
@@ -52,7 +57,7 @@ namespace Console_Dungeon
                 ShowPlayerOptions();
                 optionSelected = translateToOptionSelected(consoleTools.ReadKey());
 
-                if (optionSelected != Controls.invalid || optionSelected != Controls.quit)
+                if (optionSelected != Controls.invalid || optionSelected != Controls.quit || optionSelected != Controls.savegame)
                 {
                     bool moveIsPossible = CheckIfMoveIsPossible(optionSelected);
 
@@ -88,7 +93,7 @@ namespace Console_Dungeon
 
         private static void NotifyPlayerUnableToMove()
         {
-            throw new NotImplementedException();
+            consoleTools.ShowMessageToUser(texts.passBlocked);
         }
 
         private static void ShowLoserMessage()
@@ -102,17 +107,8 @@ namespace Console_Dungeon
         }
 
         private static void ShowGameIntro()
-        {
-            try
-            {
-                consoleTools.ShowMessageToUser("teste");
-            }
-            catch (Exception e)
-            {
-                var erro = e.StackTrace;
-                throw;
-            }
-                        
+        {            
+                consoleTools.ShowMessageToUser(texts.introGame);                        
         }
 
         private static void NotifyGameStatus()
@@ -153,8 +149,7 @@ namespace Console_Dungeon
         {
             switch (consoleKey)
             {
-                case ConsoleKey.Escape:                    
-                    SaveGame();
+                case ConsoleKey.Escape:                                        
                     consoleTools.Close();
                     return Controls.quit;
 
@@ -181,9 +176,10 @@ namespace Console_Dungeon
         }
 
         private static void SaveGame()
-        {
-            //File.WriteAllText(@"C:\Temp\mySaveFile.sav", );
-            throw new NotImplementedException();
+        {            
+            string jsonString = JsonSerializer.Serialize(player);
+            File.WriteAllText(saveGameLocal, jsonString);                   
+            consoleTools.ShowMessageToUser(texts.savedGame, ConsoleColor.Green);
         }
 
         private static bool CheckIfMoveIsPossible(Controls optionSelected)
@@ -206,35 +202,41 @@ namespace Console_Dungeon
 
         private static void InitGameMessage()
         {
-            consoleTools.ShowMessageToUser(texts.explaneGame);
-        }
-
-        private static void RecoverInfo()
-        {
-            RestoreSalveGame();
-        }
+            consoleTools.ShowMessageToUser(texts.explainGame, ConsoleColor.Yellow);
+            Thread.Sleep(2000);
+        }                         
 
         private static bool AskAboutLoadSave()
         {
-            if (consoleTools.ReadKey() == ConsoleKey.Y)
+            do
             {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-            
+                consoleTools.ShowMessageToUser(texts.askAboutSaveGame);
+                consoleTools.ShowMessageToUser(texts.yesOrNot);
+                if (consoleTools.ReadKey() == ConsoleKey.Y)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            } while (consoleTools.ReadKey() != ConsoleKey.Y || consoleTools.ReadKey() != ConsoleKey.N);                        
         }
 
         private static void RestoreSalveGame()
         {
-            throw new NotImplementedException();
+            string jsonString = File.ReadAllText(@"c:\Temp\mySaveFile.json");
+            Player loadPlayer = JsonSerializer.Deserialize<Player>(jsonString);
+            player.hasKey = loadPlayer.hasKey;
+            player.hasSword = loadPlayer.hasSword;
+            player.life = loadPlayer.life;            
+
+            consoleTools.ShowMessageToUser(texts.saveRestored, ConsoleColor.Green);
         }
 
         private static bool HasSaveGame()
         {
-            if (File.Exists(@"C:\Temp\mySaveFile.sav"))
+            if (File.Exists(saveGameLocal))
             {
                 return true;
             }
